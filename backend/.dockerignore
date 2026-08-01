@@ -1,0 +1,33 @@
+# ---- Node & OS artefacts ----
+node_modules/
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+
+# ---- Local development files ----
+.env
+.env.*          # any env overrides
+.secrets        # if you keep a local secrets file
+
+# ---- Source that isn’t needed in the image ----
+frontend/        # the React front‑end lives in its own container
+uploads/         # we create an empty folder in the image; data will be mounted at runtime
+tests/
+*.spec.js
+*.test.js
+
+# ---- Version‑control & IDE artefacts ----
+.git/
+.gitignore
+.vscode/
+.idea/
+.DS_Store
+
+# ---- Build artefacts ----
+dist/
+build/
+
+# ---- Docker ----
+Dockerfile
+.dockerignore
+docker-compose.yml

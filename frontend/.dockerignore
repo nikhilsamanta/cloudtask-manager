@@ -1,0 +1,24 @@
+# ---- Node & OS artefacts ----
+node_modules/
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+
+# ---- Local development files ----
+.env
+.env.*
+.secrets
+
+# ---- Build & IDE artefacts ----
+dist/
+build/
+.git/
+.gitignore
+.vscode/
+.idea/
+.DS_Store
+
+# ---- Docker ----
+Dockerfile
+.dockerignore
+docker-compose.yml
