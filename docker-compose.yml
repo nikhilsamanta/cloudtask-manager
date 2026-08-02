@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: cloudtask-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017" # Exposed for local debugging; could be omitted in pure production
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - cloudtask-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cloudtask-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000" # Expose for direct API testing
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      # Connecting to the Mongo service using Docker's internal DNS service discovery
+      - MONGO_URI=mongodb://mongo:27017/cloudtask_db
+      - JWT_SECRET=cloudtask_super_secret_jwt_key_2026_devops_production
+      - JWT_EXPIRE=30d
+      - STORAGE_TYPE=local
+      - UPLOAD_PATH=uploads
+      - CORS_ORIGIN=http://localhost
+    volumes:
+      # Named volume mapped to the path created in the backend Dockerfile
+      - backend_uploads:/app/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - cloudtask-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cloudtask-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80" # Map host port 80 to container port 80 (Nginx)
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - cloudtask-network
+
+networks:
+  cloudtask-network:
+    driver: bridge
+    name: cloudtask-network
+
+volumes:
+  mongo_data:
+    name: cloudtask-mongo-data
+  backend_uploads:
+    name: cloudtask-backend-uploads
