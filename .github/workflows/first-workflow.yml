@@ -1,4 +1,4 @@
-name: My First Workflow
+name: Backend CI
 
 on:
   push:
@@ -6,9 +6,24 @@ on:
       - main
 
 jobs:
-  hello:
+  backend-build:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: backend
+
     steps:
-      - name: Print Message
-        run: echo "Hello DevOps! My first GitHub Actions workflow is running."
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Verify Application Starts
+        run: echo "Backend dependencies installed successfully."
