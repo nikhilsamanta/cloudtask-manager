@@ -84,15 +84,7 @@ const TaskModal = ({ task, isCreate, projects = [], users = [], onClose, onSave,
         setNewComment('');
       }
     } catch (err) {
-      // Local state fallback
-      const mockComment = {
-        _id: 'comment_' + Date.now(),
-        content: newComment,
-        user: { name: user.name, avatar: user.avatar, role: user.role },
-        createdAt: new Date().toISOString(),
-      };
-      setComments([...comments, mockComment]);
-      setNewComment('');
+      console.error('[TaskModal]: Failed to add comment:', err);
     }
   };
 
@@ -110,17 +102,7 @@ const TaskModal = ({ task, isCreate, projects = [], users = [], onClose, onSave,
         setAttachments([res.data.data, ...attachments]);
       }
     } catch (err) {
-      // Mock attachment preview
-      const mockAttachment = {
-        _id: 'att_' + Date.now(),
-        originalName: file.name,
-        filePath: '#',
-        fileSize: file.size,
-        mimeType: file.type,
-        uploadedBy: { name: user.name },
-        createdAt: new Date().toISOString(),
-      };
-      setAttachments([mockAttachment, ...attachments]);
+      console.error('[TaskModal]: Failed to upload attachment:', err);
     } finally {
       setUploading(false);
     }

@@ -24,44 +24,8 @@ const Projects = ({ onSelectProject }) => {
         setProjects(res.data.data);
       }
     } catch (err) {
-      // Mock Projects Fallback
-      setProjects([
-        {
-          _id: 'proj_1',
-          name: 'Kubernetes Cluster Migration',
-          description: 'Migrate core microservices from AWS EC2 monoliths to Amazon EKS cluster managed via Terraform and Helm charts.',
-          status: 'Active',
-          category: 'Cloud Infrastructure',
-          progress: 65,
-          members: [
-            { _id: 'u1', name: 'Alex Rivera', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
-            { _id: 'u2', name: 'Marcus Vance', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
-          ],
-        },
-        {
-          _id: 'proj_2',
-          name: 'CloudTask Pro V2 Frontend',
-          description: 'Redesign UI dashboard using React, Tailwind CSS, Kanban boards, dark mode tokens, and real-time state management.',
-          status: 'Active',
-          category: 'Web Development',
-          progress: 80,
-          members: [
-            { _id: 'u2', name: 'Marcus Vance', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
-            { _id: 'u3', name: 'Elena Rostova', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150' },
-          ],
-        },
-        {
-          _id: 'proj_3',
-          name: 'Prometheus & Grafana Observability',
-          description: 'Configure Prometheus metrics collection, Grafana dashboards, Loki log aggregation, and Alertmanager routing.',
-          status: 'Planning',
-          category: 'Monitoring & Logging',
-          progress: 25,
-          members: [
-            { _id: 'u1', name: 'Alex Rivera', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
-          ],
-        },
-      ]);
+      console.error('[Projects]: Failed to fetch projects:', err);
+      setProjects([]);
     } finally {
       setLoading(false);
     }

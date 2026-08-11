@@ -24,32 +24,8 @@ const ProjectDetail = ({ project: initialProject, onBack }) => {
         setTasks(res.data.data.tasks || []);
       }
     } catch (err) {
-      // Mock fallback
-      const mockTasks = [
-        {
-          _id: 't1',
-          title: 'Provision EKS Cluster with Terraform',
-          description: 'Write Terraform modules for VPC, subnets, NAT Gateways, and EKS node pools with auto-scaling enabled.',
-          status: 'In Progress',
-          priority: 'High',
-          project: initialProject._id,
-          assignedTo: { name: 'David Chen', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150' },
-          dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-          tags: ['Terraform', 'AWS', 'EKS'],
-        },
-        {
-          _id: 't2',
-          title: 'Dockerize Express API & Multi-stage Build',
-          description: 'Optimize Dockerfile using Node 20 Alpine base image, non-root user security, and layer caching.',
-          status: 'Completed',
-          priority: 'High',
-          project: initialProject._id,
-          assignedTo: { name: 'Alex Rivera', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
-          dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          tags: ['Docker', 'Backend'],
-        },
-      ];
-      setTasks(mockTasks);
+      console.error('[ProjectDetail]: Failed to fetch project details:', err);
+      setTasks([]);
     } finally {
       setLoading(false);
     }

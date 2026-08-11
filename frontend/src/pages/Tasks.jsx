@@ -44,64 +44,8 @@ const Tasks = () => {
         setTasks(res.data.data);
       }
     } catch (err) {
-      // Mock Fallback
-      setTasks([
-        {
-          _id: 't1',
-          title: 'Provision EKS Cluster with Terraform',
-          description: 'Write Terraform modules for VPC, subnets, NAT Gateways, and EKS node pools with auto-scaling enabled.',
-          status: 'In Progress',
-          priority: 'High',
-          project: { _id: 'p1', name: 'Kubernetes Cluster Migration' },
-          assignedTo: { _id: 'u4', name: 'David Chen', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150' },
-          dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-          tags: ['Terraform', 'AWS', 'EKS'],
-        },
-        {
-          _id: 't2',
-          title: 'Dockerize Express API & Multi-stage Build',
-          description: 'Optimize Dockerfile using Node 20 Alpine base image, non-root user security, and layer caching.',
-          status: 'Completed',
-          priority: 'High',
-          project: { _id: 'p1', name: 'Kubernetes Cluster Migration' },
-          assignedTo: { _id: 'u1', name: 'Alex Rivera', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
-          dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          tags: ['Docker', 'Backend'],
-        },
-        {
-          _id: 't3',
-          title: 'Implement Interactive Kanban Board',
-          description: 'Build responsive 3-column drag-and-drop board for To Do, In Progress, and Completed task states.',
-          status: 'In Progress',
-          priority: 'High',
-          project: { _id: 'p2', name: 'CloudTask Pro V2 Frontend' },
-          assignedTo: { _id: 'u3', name: 'Elena Rostova', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150' },
-          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-          tags: ['React', 'Kanban', 'UI'],
-        },
-        {
-          _id: 't4',
-          title: 'Setup JWT Auth & Role Authorization',
-          description: 'Secure Express API endpoints using JWT Bearer token headers and role middleware checks.',
-          status: 'Completed',
-          priority: 'High',
-          project: { _id: 'p2', name: 'CloudTask Pro V2 Frontend' },
-          assignedTo: { _id: 'u3', name: 'Elena Rostova', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150' },
-          dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          tags: ['Security', 'JWT', 'API'],
-        },
-        {
-          _id: 't5',
-          title: 'Configure Grafana Dashboards for API Latency',
-          description: 'Design dashboards rendering P95/P99 request latency, HTTP status codes, and CPU/Memory usage metrics.',
-          status: 'To Do',
-          priority: 'Medium',
-          project: { _id: 'p3', name: 'Prometheus & Grafana Observability' },
-          assignedTo: { _id: 'u4', name: 'David Chen', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150' },
-          dueDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
-          tags: ['Grafana', 'DevOps'],
-        },
-      ]);
+      console.error('[Tasks]: Failed to fetch tasks:', err);
+      setTasks([]);
     } finally {
       setLoading(false);
     }

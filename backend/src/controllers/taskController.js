@@ -12,10 +12,6 @@ const getTasks = async (req, res, next) => {
     const { project, status, priority, search } = req.query;
     let query = {};
 
-    if (project) {
-      query.project = project;
-    }
-
     if (status) {
       query.status = status;
     }
@@ -28,9 +24,40 @@ const getTasks = async (req, res, next) => {
       query.title = { $regex: search, $options: 'i' };
     }
 
-    // Role-based visibility for Employees
-    if (req.user.role === 'Employee' && !project) {
+    // Role-based visibility for non-Admin users
+    if (req.user.role === 'Employee') {
+      const userProjects = await Project.find({
+        $or: [{ members: req.user._id }, { createdBy: req.user._id }],
+      }).select('_id');
+      const projectIds = userProjects.map((p) => p._id.toString());
+
+      if (project) {
+        if (!projectIds.includes(project.toString())) {
+          return res.json({ success: true, count: 0, data: [] });
+        }
+        query.project = project;
+      } else {
+        query.project = { $in: userProjects.map((p) => p._id) };
+      }
       query.$or = [{ assignedTo: req.user._id }, { createdBy: req.user._id }];
+    } else if (req.user.role === 'Manager') {
+      const userProjects = await Project.find({
+        $or: [{ members: req.user._id }, { createdBy: req.user._id }],
+      }).select('_id');
+      const projectIds = userProjects.map((p) => p._id.toString());
+
+      if (project) {
+        if (!projectIds.includes(project.toString())) {
+          return res.json({ success: true, count: 0, data: [] });
+        }
+        query.project = project;
+      } else {
+        query.project = { $in: userProjects.map((p) => p._id) };
+      }
+    } else { // Admin
+      if (project) {
+        query.project = project;
+      }
     }
 
     const tasks = await Task.find(query)
@@ -51,12 +78,25 @@ const getTasks = async (req, res, next) => {
 const getTaskById = async (req, res, next) => {
   try {
     const task = await Task.findById(req.params.id)
-      .populate('project', 'name category')
+      .populate('project', 'name category createdBy members')
       .populate('assignedTo', 'name email avatar role department')
       .populate('createdBy', 'name email avatar');
 
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    // Authorization check for non-Admin users
+    if (req.user.role !== 'Admin') {
+      const projectObj = await Project.findById(task.project?._id || task.project);
+      const isProjectCreator = projectObj && projectObj.createdBy.toString() === req.user._id.toString();
+      const isProjectMember = projectObj && projectObj.members.some(m => m.toString() === req.user._id.toString());
+      const isTaskAssignee = task.assignedTo?._id?.toString() === req.user._id.toString();
+      const isTaskCreator = task.createdBy?._id?.toString() === req.user._id.toString();
+
+      if (!isProjectCreator && !isProjectMember && !isTaskAssignee && !isTaskCreator) {
+        return res.status(403).json({ success: false, message: 'Not authorized to view this task' });
+      }
     }
 
     const comments = await Comment.find({ task: task._id })
@@ -90,6 +130,15 @@ const createTask = async (req, res, next) => {
     const projectObj = await Project.findById(project);
     if (!projectObj) {
       return res.status(404).json({ success: false, message: 'Associated project not found' });
+    }
+
+    // Authorization check for non-Admin users
+    if (req.user.role !== 'Admin') {
+      const isCreator = projectObj.createdBy.toString() === req.user._id.toString();
+      const isMember = projectObj.members.some(m => m.toString() === req.user._id.toString());
+      if (!isCreator && !isMember) {
+        return res.status(403).json({ success: false, message: 'Not authorized to create tasks in this project' });
+      }
     }
 
     const task = await Task.create({
@@ -134,7 +183,23 @@ const updateTask = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
-    task = await Task.findByIdAndUpdate(req.params.id, req.body, {
+    // Authorization check for non-Admin users
+    if (req.user.role !== 'Admin') {
+      const projectObj = await Project.findById(task.project);
+      const isProjectCreator = projectObj && projectObj.createdBy.toString() === req.user._id.toString();
+      const isProjectMember = projectObj && projectObj.members.some(m => m.toString() === req.user._id.toString());
+      const isTaskAssignee = task.assignedTo?.toString() === req.user._id.toString();
+      const isTaskCreator = task.createdBy?.toString() === req.user._id.toString();
+
+      if (!isProjectCreator && !isProjectMember && !isTaskAssignee && !isTaskCreator) {
+        return res.status(403).json({ success: false, message: 'Not authorized to update this task' });
+      }
+    }
+
+    const updateData = { ...req.body };
+    delete updateData.createdBy;
+
+    task = await Task.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     })
@@ -171,6 +236,19 @@ const updateTaskStatus = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
+    // Authorization check for non-Admin users
+    if (req.user.role !== 'Admin') {
+      const projectObj = await Project.findById(task.project);
+      const isProjectCreator = projectObj && projectObj.createdBy.toString() === req.user._id.toString();
+      const isProjectMember = projectObj && projectObj.members.some(m => m.toString() === req.user._id.toString());
+      const isTaskAssignee = task.assignedTo?.toString() === req.user._id.toString();
+      const isTaskCreator = task.createdBy?.toString() === req.user._id.toString();
+
+      if (!isProjectCreator && !isProjectMember && !isTaskAssignee && !isTaskCreator) {
+        return res.status(403).json({ success: false, message: 'Not authorized to update task status' });
+      }
+    }
+
     const oldStatus = task.status;
     task.status = status;
     await task.save();
@@ -203,6 +281,17 @@ const deleteTask = async (req, res, next) => {
 
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    // Authorization check for non-Admin users
+    if (req.user.role !== 'Admin') {
+      const projectObj = await Project.findById(task.project);
+      const isProjectCreator = projectObj && projectObj.createdBy.toString() === req.user._id.toString();
+      const isTaskCreator = task.createdBy?.toString() === req.user._id.toString();
+
+      if (!isProjectCreator && !isTaskCreator) {
+        return res.status(403).json({ success: false, message: 'Not authorized to delete this task' });
+      }
     }
 
     // Remove comments & attachments linked to task

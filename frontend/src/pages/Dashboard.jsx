@@ -18,23 +18,23 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 const Dashboard = ({ onNavigate, onOpenCreateTask, onOpenCreateProject }) => {
   const [stats, setStats] = useState({
     summary: {
-      totalProjects: 3,
-      totalTasks: 5,
-      completedTasks: 2,
-      inProgressTasks: 2,
-      todoTasks: 1,
-      pendingTasks: 3,
-      totalTeamMembers: 4,
-      completionRate: 40,
+      totalProjects: 0,
+      totalTasks: 0,
+      completedTasks: 0,
+      inProgressTasks: 0,
+      todoTasks: 0,
+      pendingTasks: 0,
+      totalTeamMembers: 0,
+      completionRate: 0,
     },
     statusDistribution: [
-      { name: 'To Do', value: 1, color: '#f59e0b' },
-      { name: 'In Progress', value: 2, color: '#3b82f6' },
-      { name: 'Completed', value: 2, color: '#10b981' },
+      { name: 'To Do', value: 0, color: '#f59e0b' },
+      { name: 'In Progress', value: 0, color: '#3b82f6' },
+      { name: 'Completed', value: 0, color: '#10b981' },
     ],
     priorityBreakdown: [
-      { name: 'High', count: 4, color: '#ef4444' },
-      { name: 'Medium', count: 1, color: '#f59e0b' },
+      { name: 'High', count: 0, color: '#ef4444' },
+      { name: 'Medium', count: 0, color: '#f59e0b' },
       { name: 'Low', count: 0, color: '#10b981' },
     ],
     recentActivities: [],
@@ -49,7 +49,7 @@ const Dashboard = ({ onNavigate, onOpenCreateTask, onOpenCreateProject }) => {
         }
       })
       .catch(() => {
-        // Fallback default mock stats loaded in initial state
+        // Clear or keep initial zeroed state on error
       });
   }, []);
 
@@ -90,30 +90,30 @@ const Dashboard = ({ onNavigate, onOpenCreateTask, onOpenCreateProject }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Projects"
-          value={summary.totalProjects || 3}
+          value={summary.totalProjects ?? 0}
           subtitle="Active Workspaces"
           icon={FolderKanban}
           color="indigo"
-          trend="+12%"
+          trend="+0%"
         />
         <StatCard
           title="Total Tasks"
-          value={summary.totalTasks || 5}
-          subtitle={`${summary.completedTasks || 2} completed deliverables`}
+          value={summary.totalTasks ?? 0}
+          subtitle={`${summary.completedTasks ?? 0} completed deliverables`}
           icon={Clock}
           color="blue"
         />
         <StatCard
           title="Completion Rate"
-          value={`${summary.completionRate || 40}%`}
+          value={`${summary.completionRate ?? 0}%`}
           subtitle="Overall sprint velocity"
           icon={CheckCircle2}
           color="emerald"
-          trend="+5%"
+          trend="+0%"
         />
         <StatCard
           title="Pending Tasks"
-          value={summary.pendingTasks || 3}
+          value={summary.pendingTasks ?? 0}
           subtitle="Require team action"
           icon={AlertTriangle}
           color="amber"
@@ -151,7 +151,7 @@ const Dashboard = ({ onNavigate, onOpenCreateTask, onOpenCreateProject }) => {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute flex flex-col items-center pointer-events-none">
-              <span className="text-xl font-extrabold text-slate-900 dark:text-white">{summary.totalTasks}</span>
+              <span className="text-xl font-extrabold text-slate-900 dark:text-white">{summary.totalTasks ?? 0}</span>
               <span className="text-[10px] text-slate-400 font-semibold uppercase">Tasks</span>
             </div>
           </div>
@@ -159,15 +159,15 @@ const Dashboard = ({ onNavigate, onOpenCreateTask, onOpenCreateProject }) => {
           {/* Legend */}
           <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
             <div>
-              <span className="block text-xs font-bold text-amber-500">{summary.todoTasks || 1}</span>
+              <span className="block text-xs font-bold text-amber-500">{summary.todoTasks ?? 0}</span>
               <span className="text-[10px] text-slate-400 font-medium">To Do</span>
             </div>
             <div>
-              <span className="block text-xs font-bold text-blue-500">{summary.inProgressTasks || 2}</span>
+              <span className="block text-xs font-bold text-blue-500">{summary.inProgressTasks ?? 0}</span>
               <span className="text-[10px] text-slate-400 font-medium">In Progress</span>
             </div>
             <div>
-              <span className="block text-xs font-bold text-emerald-500">{summary.completedTasks || 2}</span>
+              <span className="block text-xs font-bold text-emerald-500">{summary.completedTasks ?? 0}</span>
               <span className="text-[10px] text-slate-400 font-medium">Completed</span>
             </div>
           </div>
@@ -186,11 +186,11 @@ const Dashboard = ({ onNavigate, onOpenCreateTask, onOpenCreateProject }) => {
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-rose-600 dark:text-rose-400">High Priority</span>
                   <span className="text-slate-600 dark:text-slate-400">
-                    {stats.priorityBreakdown?.[0]?.count || 4} tasks
+                    {stats.priorityBreakdown?.[0]?.count ?? 0} tasks
                   </span>
                 </div>
                 <div className="w-full h-2 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden">
-                  <div className="h-full bg-rose-500 rounded-full" style={{ width: '80%' }} />
+                  <div className="h-full bg-rose-500 rounded-full" style={{ width: summary.totalTasks ? `${Math.round(((stats.priorityBreakdown?.[0]?.count || 0) / summary.totalTasks) * 100)}%` : '0%' }} />
                 </div>
               </div>
 
@@ -198,11 +198,11 @@ const Dashboard = ({ onNavigate, onOpenCreateTask, onOpenCreateProject }) => {
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-amber-600 dark:text-amber-400">Medium Priority</span>
                   <span className="text-slate-600 dark:text-slate-400">
-                    {stats.priorityBreakdown?.[1]?.count || 1} task
+                    {stats.priorityBreakdown?.[1]?.count ?? 0} tasks
                   </span>
                 </div>
                 <div className="w-full h-2 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 rounded-full" style={{ width: '20%' }} />
+                  <div className="h-full bg-amber-500 rounded-full" style={{ width: summary.totalTasks ? `${Math.round(((stats.priorityBreakdown?.[1]?.count || 0) / summary.totalTasks) * 100)}%` : '0%' }} />
                 </div>
               </div>
 
@@ -210,11 +210,11 @@ const Dashboard = ({ onNavigate, onOpenCreateTask, onOpenCreateProject }) => {
                 <div className="flex justify-between text-xs font-semibold mb-1">
                   <span className="text-emerald-600 dark:text-emerald-400">Low Priority</span>
                   <span className="text-slate-600 dark:text-slate-400">
-                    {stats.priorityBreakdown?.[2]?.count || 0} tasks
+                    {stats.priorityBreakdown?.[2]?.count ?? 0} tasks
                   </span>
                 </div>
                 <div className="w-full h-2 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: '0%' }} />
+                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: summary.totalTasks ? `${Math.round(((stats.priorityBreakdown?.[2]?.count || 0) / summary.totalTasks) * 100)}%` : '0%' }} />
                 </div>
               </div>
             </div>

@@ -22,16 +22,6 @@ export const AuthProvider = ({ children }) => {
           console.warn('[AuthContext]: Stale or invalid token, logging out.');
           localStorage.removeItem('cloudtask_token');
         }
-      } else {
-        // Default demo fallback user if no token present
-        const savedDemo = localStorage.getItem('cloudtask_demo_user');
-        if (savedDemo) {
-          try {
-            setUser(JSON.parse(savedDemo));
-          } catch (e) {
-            // ignore
-          }
-        }
       }
       setLoading(false);
     };
@@ -46,55 +36,12 @@ export const AuthProvider = ({ children }) => {
       if (res.data.success) {
         const userData = res.data.data;
         localStorage.setItem('cloudtask_token', userData.token);
-        localStorage.setItem('cloudtask_demo_user', JSON.stringify(userData));
         setUser(userData);
         return true;
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed. Checking demo mode...';
+      const msg = err.response?.data?.message || 'Login failed';
       setError(msg);
-
-      // Demo login fallback if API is unreachable
-      if (email.includes('admin')) {
-        const mockAdmin = {
-          _id: 'user_admin_123',
-          name: 'Alex Rivera (Admin)',
-          email: 'admin@cloudtask.com',
-          role: 'Admin',
-          department: 'DevOps & Architecture',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-          token: 'mock_jwt_admin_token',
-        };
-        setUser(mockAdmin);
-        localStorage.setItem('cloudtask_demo_user', JSON.stringify(mockAdmin));
-        return true;
-      } else if (email.includes('manager')) {
-        const mockManager = {
-          _id: 'user_manager_456',
-          name: 'Marcus Vance (Manager)',
-          email: 'manager@cloudtask.com',
-          role: 'Manager',
-          department: 'Product Engineering',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-          token: 'mock_jwt_manager_token',
-        };
-        setUser(mockManager);
-        localStorage.setItem('cloudtask_demo_user', JSON.stringify(mockManager));
-        return true;
-      } else {
-        const mockEmployee = {
-          _id: 'user_employee_789',
-          name: 'Elena Rostova (Employee)',
-          email: 'employee@cloudtask.com',
-          role: 'Employee',
-          department: 'Frontend Engineering',
-          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-          token: 'mock_jwt_employee_token',
-        };
-        setUser(mockEmployee);
-        localStorage.setItem('cloudtask_demo_user', JSON.stringify(mockEmployee));
-        return true;
-      }
     }
     return false;
   };
@@ -106,7 +53,6 @@ export const AuthProvider = ({ children }) => {
       if (res.data.success) {
         const newUser = res.data.data;
         localStorage.setItem('cloudtask_token', newUser.token);
-        localStorage.setItem('cloudtask_demo_user', JSON.stringify(newUser));
         setUser(newUser);
         return true;
       }
@@ -130,9 +76,7 @@ export const AuthProvider = ({ children }) => {
         return true;
       }
     } catch (err) {
-      // Local state update fallback
-      setUser((prev) => ({ ...prev, ...data }));
-      return true;
+      setError(err.response?.data?.message || 'Profile update failed');
     }
     return false;
   };

@@ -10,10 +10,34 @@ const getDashboardStats = async (req, res, next) => {
   try {
     let projectQuery = {};
     let taskQuery = {};
+    let activityQuery = {};
 
     if (req.user.role === 'Employee') {
       projectQuery = { $or: [{ members: req.user._id }, { createdBy: req.user._id }] };
-      taskQuery = { $or: [{ assignedTo: req.user._id }, { createdBy: req.user._id }] };
+      const userProjects = await Project.find(projectQuery).select('_id');
+      const projectIds = userProjects.map((p) => p._id);
+
+      taskQuery = {
+        $and: [
+          { project: { $in: projectIds } },
+          { $or: [{ assignedTo: req.user._id }, { createdBy: req.user._id }] }
+        ]
+      };
+
+      activityQuery = { user: req.user._id };
+    } else if (req.user.role === 'Manager') {
+      projectQuery = { $or: [{ members: req.user._id }, { createdBy: req.user._id }] };
+      const userProjects = await Project.find(projectQuery).select('_id');
+      const projectIds = userProjects.map((p) => p._id);
+
+      taskQuery = { project: { $in: projectIds } };
+
+      activityQuery = {
+        $or: [
+          { user: req.user._id },
+          { targetId: { $in: projectIds } },
+        ],
+      };
     }
 
     const totalProjects = await Project.countDocuments(projectQuery);
@@ -29,7 +53,7 @@ const getDashboardStats = async (req, res, next) => {
     const lowPriority = await Task.countDocuments({ ...taskQuery, priority: 'Low' });
 
     // Recent activity log
-    const recentActivities = await ActivityLog.find()
+    const recentActivities = await ActivityLog.find(activityQuery)
       .populate('user', 'name email avatar role')
       .sort({ createdAt: -1 })
       .limit(8);

@@ -6,24 +6,12 @@ const morgan = require('morgan');
 const path = require('path');
 const connectDB = require('./src/config/db');
 const errorHandler = require('./src/middleware/errorMiddleware');
-const User = require('./src/models/User');
-const seedDatabase = require('./src/utils/seedData');
 
 // Load environment variables
 dotenv.config();
 
 // Connect to Database
-connectDB().then(async () => {
-  try {
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      console.log('[Server Auto-Seed]: No users found. Auto-populating demo data...');
-      await seedDatabase();
-    }
-  } catch (err) {
-    console.log('[Server Startup Note]: DB connection pending or uninitialized.');
-  }
-});
+connectDB();
 
 const app = express();
 
