@@ -155,10 +155,32 @@ const changePassword = async (req, res, next) => {
 
 // @desc    Get all users (for assigning tasks/projects)
 // @route   GET /api/auth/users
-// @access  Private
+// @access  Private (Admin & Manager: all users; Employee: only users in shared projects)
 const getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find().select('-password').sort({ name: 1 });
+    // Admin and Manager see all users (needed for project member assignment)
+    if (req.user.isAdmin || req.user.role === 'Manager') {
+      const users = await User.find().select('-password').sort({ name: 1 });
+      return res.json({ success: true, count: users.length, data: users });
+    }
+
+    // Employee: only see users who share a project with them
+    const Project = require('../models/Project');
+    const userProjects = await Project.find({
+      $or: [{ members: req.user._id }, { createdBy: req.user._id }],
+    }).select('members createdBy');
+
+    const relatedUserIds = new Set();
+    relatedUserIds.add(req.user._id.toString());
+    userProjects.forEach((p) => {
+      if (p.createdBy) relatedUserIds.add(p.createdBy.toString());
+      p.members.forEach((m) => relatedUserIds.add(m.toString()));
+    });
+
+    const users = await User.find({ _id: { $in: [...relatedUserIds] } })
+      .select('-password')
+      .sort({ name: 1 });
+
     res.json({ success: true, count: users.length, data: users });
   } catch (error) {
     next(error);

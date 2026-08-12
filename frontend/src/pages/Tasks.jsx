@@ -14,7 +14,6 @@ import {
 import {
   getTasksApi,
   getProjectsApi,
-  getUsersApi,
   createTaskApi,
   updateTaskApi,
   updateTaskStatusApi,
@@ -23,7 +22,6 @@ import {
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('kanban'); // 'kanban' | 'list'
 
@@ -55,9 +53,6 @@ const Tasks = () => {
     fetchTasks();
     getProjectsApi()
       .then((res) => res.data.success && setProjects(res.data.data))
-      .catch(() => {});
-    getUsersApi()
-      .then((res) => res.data.success && setUsers(res.data.data))
       .catch(() => {});
   }, []);
 
@@ -245,13 +240,13 @@ const Tasks = () => {
         </div>
       )}
 
-      {/* Task Modal */}
+      {/* Task Modal — assignees are loaded dynamically per project in TaskModal */}
       {isModalOpen && (
         <TaskModal
           task={selectedTask}
           isCreate={isCreate}
           projects={projects}
-          users={users}
+          users={[]}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveTask}
         />

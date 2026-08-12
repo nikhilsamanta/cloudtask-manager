@@ -6,6 +6,7 @@ const {
   createProject,
   updateProject,
   deleteProject,
+  getProjectMembers,
 } = require('../controllers/projectController');
 const { protect } = require('../middleware/authMiddleware');
 const { authorize } = require('../middleware/roleMiddleware');
@@ -20,5 +21,8 @@ router
   .get(protect, getProjectById)
   .put(protect, authorize('Admin', 'Manager'), updateProject)
   .delete(protect, authorize('Admin'), deleteProject);
+
+// Returns only the members of a project (used by TaskModal assignee dropdown)
+router.get('/:id/members', protect, getProjectMembers);
 
 module.exports = router;

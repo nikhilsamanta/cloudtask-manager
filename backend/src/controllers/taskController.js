@@ -133,11 +133,24 @@ const createTask = async (req, res, next) => {
     }
 
     // Authorization check for non-Admin users
-    if (req.user.role !== 'Admin') {
+    if (!req.user.isAdmin) {
       const isCreator = projectObj.createdBy.toString() === req.user._id.toString();
       const isMember = projectObj.members.some(m => m.toString() === req.user._id.toString());
       if (!isCreator && !isMember) {
         return res.status(403).json({ success: false, message: 'Not authorized to create tasks in this project' });
+      }
+    }
+
+    // Validate assignedTo is a member of the project (backend enforcement)
+    if (assignedTo) {
+      const isAssigneeMember =
+        projectObj.createdBy.toString() === assignedTo.toString() ||
+        projectObj.members.some(m => m.toString() === assignedTo.toString());
+      if (!isAssigneeMember) {
+        return res.status(400).json({
+          success: false,
+          message: 'Assigned user is not a member of this project. Add them to the project first.',
+        });
       }
     }
 
@@ -184,7 +197,7 @@ const updateTask = async (req, res, next) => {
     }
 
     // Authorization check for non-Admin users
-    if (req.user.role !== 'Admin') {
+    if (!req.user.isAdmin) {
       const projectObj = await Project.findById(task.project);
       const isProjectCreator = projectObj && projectObj.createdBy.toString() === req.user._id.toString();
       const isProjectMember = projectObj && projectObj.members.some(m => m.toString() === req.user._id.toString());
@@ -193,6 +206,21 @@ const updateTask = async (req, res, next) => {
 
       if (!isProjectCreator && !isProjectMember && !isTaskAssignee && !isTaskCreator) {
         return res.status(403).json({ success: false, message: 'Not authorized to update this task' });
+      }
+
+      // If assignedTo is being changed, validate the new assignee is a project member
+      if (req.body.assignedTo && req.body.assignedTo !== task.assignedTo?.toString()) {
+        const isAssigneeMember =
+          projectObj && (
+            projectObj.createdBy.toString() === req.body.assignedTo.toString() ||
+            projectObj.members.some(m => m.toString() === req.body.assignedTo.toString())
+          );
+        if (!isAssigneeMember) {
+          return res.status(400).json({
+            success: false,
+            message: 'Assigned user is not a member of this project. Add them to the project first.',
+          });
+        }
       }
     }
 

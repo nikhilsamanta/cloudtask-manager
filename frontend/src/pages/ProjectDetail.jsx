@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import KanbanBoard from '../components/KanbanBoard';
 import TaskModal from '../components/TaskModal';
 import { ArrowLeft, Calendar, Users, Plus, Shield, CheckCircle2 } from 'lucide-react';
-import { getProjectByIdApi, getTasksApi, createTaskApi, updateTaskApi, updateTaskStatusApi, getUsersApi } from '../services/api';
+import { getProjectByIdApi, createTaskApi, updateTaskApi, updateTaskStatusApi } from '../services/api';
 
 const ProjectDetail = ({ project: initialProject, onBack }) => {
   const [project, setProject] = useState(initialProject);
   const [tasks, setTasks] = useState(initialProject?.tasks || []);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Modal State
@@ -33,9 +32,6 @@ const ProjectDetail = ({ project: initialProject, onBack }) => {
 
   useEffect(() => {
     fetchProjectDetails();
-    getUsersApi()
-      .then((res) => res.data.success && setUsers(res.data.data))
-      .catch(() => {});
   }, [initialProject]);
 
   const handleStatusChange = async (taskId, newStatus) => {
@@ -163,13 +159,13 @@ const ProjectDetail = ({ project: initialProject, onBack }) => {
         />
       </div>
 
-      {/* Task Modal */}
+      {/* Task Modal — pass only project members as valid assignees */}
       {isTaskModalOpen && (
         <TaskModal
           task={selectedTask}
           isCreate={isCreateTask}
           projects={[project]}
-          users={users}
+          users={project?.members || []}
           onClose={() => setIsTaskModalOpen(false)}
           onSave={handleSaveTask}
         />

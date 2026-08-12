@@ -202,10 +202,45 @@ const deleteProject = async (req, res, next) => {
   }
 };
 
+// @desc    Get members of a specific project (for task assignee dropdown)
+// @route   GET /api/projects/:id/members
+// @access  Private
+const getProjectMembers = async (req, res, next) => {
+  try {
+    const project = await Project.findById(req.params.id)
+      .populate('members', 'name email avatar role department')
+      .populate('createdBy', 'name email avatar role department');
+
+    if (!project) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
+    // Authorization: only project creator, members, or Admin can see the member list
+    if (!req.user.isAdmin) {
+      const isCreator = project.createdBy._id.toString() === req.user._id.toString();
+      const isMember = project.members.some(m => m._id.toString() === req.user._id.toString());
+      if (!isCreator && !isMember) {
+        return res.status(403).json({ success: false, message: 'Not authorized to view this project' });
+      }
+    }
+
+    // Combine members + createdBy into a deduplicated list
+    const memberMap = new Map();
+    [project.createdBy, ...project.members].forEach((u) => {
+      if (u && u._id) memberMap.set(u._id.toString(), u);
+    });
+
+    res.json({ success: true, data: [...memberMap.values()] });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getProjects,
   getProjectById,
   createProject,
   updateProject,
   deleteProject,
+  getProjectMembers,
 };

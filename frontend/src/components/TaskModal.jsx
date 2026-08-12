@@ -18,6 +18,7 @@ import {
   addCommentApi,
   uploadAttachmentApi,
   getAttachmentsByTask,
+  getProjectMembersApi,
 } from '../services/api';
 
 const TaskModal = ({ task, isCreate, projects = [], users = [], onClose, onSave, onStatusChange }) => {
@@ -29,9 +30,13 @@ const TaskModal = ({ task, isCreate, projects = [], users = [], onClose, onSave,
   const [status, setStatus] = useState(task?.status || 'To Do');
   const [priority, setPriority] = useState(task?.priority || 'Medium');
   const [project, setProject] = useState(task?.project?._id || task?.project || projects[0]?._id || '');
-  const [assignedTo, setAssignedTo] = useState(task?.assignedTo?._id || task?.assignedTo || users[0]?._id || '');
+  const [assignedTo, setAssignedTo] = useState(task?.assignedTo?._id || task?.assignedTo || '');
   const [dueDate, setDueDate] = useState(task?.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
   const [tagsInput, setTagsInput] = useState(task?.tags ? task.tags.join(', ') : '');
+
+  // Project-scoped members list (populated dynamically)
+  const [projectMembers, setProjectMembers] = useState(users);
+  const [loadingMembers, setLoadingMembers] = useState(false);
 
   // Comments & Attachments State
   const [comments, setComments] = useState(task?.comments || []);
@@ -39,6 +44,29 @@ const TaskModal = ({ task, isCreate, projects = [], users = [], onClose, onSave,
   const [attachments, setAttachments] = useState(task?.attachments || []);
   const [uploading, setUploading] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
+
+  // Fetch project members whenever the selected project changes
+  useEffect(() => {
+    if (!project) {
+      setProjectMembers(users);
+      return;
+    }
+    setLoadingMembers(true);
+    getProjectMembersApi(project)
+      .then((res) => {
+        if (res.data.success) {
+          setProjectMembers(res.data.data);
+          // If current assignedTo is no longer a member of the newly-selected project, reset it
+          const memberIds = res.data.data.map((m) => m._id);
+          if (assignedTo && !memberIds.includes(assignedTo)) {
+            setAssignedTo(res.data.data[0]?._id || '');
+          }
+        }
+      })
+      .catch(() => setProjectMembers(users))
+      .finally(() => setLoadingMembers(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project]);
 
   useEffect(() => {
     if (task?._id && !isCreate) {
@@ -213,14 +241,17 @@ const TaskModal = ({ task, isCreate, projects = [], users = [], onClose, onSave,
               {/* Assignee */}
               <div>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                  Assign To
+                  Assign To {loadingMembers && <span className="opacity-50">(loading...)</span>}
                 </label>
                 <select
                   value={assignedTo}
                   onChange={(e) => setAssignedTo(e.target.value)}
                   className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white font-medium"
                 >
-                  {users.map((u) => (
+                  {projectMembers.length === 0 && (
+                    <option value="">— No members in this project —</option>
+                  )}
+                  {projectMembers.map((u) => (
                     <option key={u._id} value={u._id}>
                       {u.name} ({u.role})
                     </option>
