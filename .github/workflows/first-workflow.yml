@@ -1,4 +1,4 @@
-name: Docker Build & Push
+name: CI/CD - CloudTaskManager
 
 on:
   push:
@@ -6,6 +6,10 @@ on:
       - main
 
 jobs:
+
+  # =========================
+  # CI - Build & Push Images
+  # =========================
   docker-build:
     runs-on: ubuntu-latest
 
@@ -35,3 +39,37 @@ jobs:
           context: ./frontend
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/cloudtask-frontend:latest
+
+
+  # =========================
+  # CD - Deploy to EC2
+  # =========================
+  deploy:
+    needs: docker-build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to AWS EC2
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+
+          script: |
+            echo "================================="
+            echo "Starting CloudTaskManager deploy"
+            echo "================================="
+
+            cd ~/cloudtask
+
+            echo "Pulling latest Docker images..."
+            docker compose pull backend frontend
+
+            echo "Updating application containers..."
+            docker compose up -d backend frontend
+
+            echo "Checking containers..."
+            docker compose ps
+
+            echo "Deployment completed!"
