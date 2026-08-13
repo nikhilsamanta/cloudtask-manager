@@ -49,6 +49,7 @@ app.use('/api/projects', require('./src/routes/projectRoutes'));
 app.use('/api/tasks', require('./src/routes/taskRoutes'));
 app.use('/api/attachments', require('./src/routes/attachmentRoutes'));
 app.use('/api/dashboard', require('./src/routes/dashboardRoutes'));
+app.use('/api/admin', require('./src/routes/adminRoutes'));
 
 // 404 Route Handler
 app.use('*', (req, res) => {

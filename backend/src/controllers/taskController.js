@@ -133,7 +133,7 @@ const createTask = async (req, res, next) => {
     }
 
     // Authorization check for non-Admin users
-    if (!req.user.isAdmin) {
+    if (req.user.role !== 'Admin') {
       const isCreator = projectObj.createdBy.toString() === req.user._id.toString();
       const isMember = projectObj.members.some(m => m.toString() === req.user._id.toString());
       if (!isCreator && !isMember) {
@@ -197,7 +197,7 @@ const updateTask = async (req, res, next) => {
     }
 
     // Authorization check for non-Admin users
-    if (!req.user.isAdmin) {
+    if (req.user.role !== 'Admin') {
       const projectObj = await Project.findById(task.project);
       const isProjectCreator = projectObj && projectObj.createdBy.toString() === req.user._id.toString();
       const isProjectMember = projectObj && projectObj.members.some(m => m.toString() === req.user._id.toString());

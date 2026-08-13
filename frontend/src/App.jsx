@@ -9,6 +9,7 @@ import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Tasks from './pages/Tasks';
 import Profile from './pages/Profile';
+import AdminManagement from './pages/AdminManagement';
 import TaskModal from './components/TaskModal';
 import ProjectModal from './components/ProjectModal';
 import { getProjectsApi, getUsersApi, createTaskApi, createProjectApi } from './services/api';
@@ -119,6 +120,9 @@ const App = () => {
           {activeTab === 'tasks' && <Tasks />}
 
           {activeTab === 'profile' && <Profile />}
+
+          {/* Admin Management — rendered only for Admin role (server also enforces this) */}
+          {activeTab === 'admin' && user?.role === 'Admin' && <AdminManagement />}
         </main>
       </div>
 

@@ -3,15 +3,17 @@ import {
   LayoutDashboard,
   FolderKanban,
   CheckSquare,
-  Users,
   User,
-  Settings,
   Cloud,
   Server,
   Terminal,
+  ShieldCheck,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
+  const { user } = useAuth();
+
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'projects', label: 'Projects', icon: FolderKanban },
@@ -55,6 +57,27 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
               </button>
             );
           })}
+
+          {/* Admin-only navigation section */}
+          {user?.role === 'Admin' && (
+            <>
+              <p className="px-3 text-[10px] font-bold text-purple-400/70 uppercase tracking-wider mb-2 mt-4">
+                Admin Zone
+              </p>
+              <button
+                id="sidebar-admin-management"
+                onClick={() => setActiveTab('admin')}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs transition-all ${
+                  activeTab === 'admin'
+                    ? 'bg-purple-600 text-white shadow-md shadow-purple-500/25 font-semibold'
+                    : 'text-purple-400 hover:bg-purple-500/10 hover:text-purple-300 border border-purple-500/20 hover:border-purple-500/40'
+                }`}
+              >
+                <ShieldCheck className={`w-4 h-4 ${activeTab === 'admin' ? 'text-white' : 'text-purple-400'}`} />
+                <span>Admin Management</span>
+              </button>
+            </>
+          )}
         </nav>
       </div>
 

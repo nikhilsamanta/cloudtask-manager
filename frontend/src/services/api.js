@@ -57,4 +57,14 @@ export const uploadAttachmentApi = (taskId, formData) =>
 // Dashboard API Methods
 export const getDashboardStatsApi = () => API.get('/dashboard/stats');
 
+// Admin API Methods (Admin role required — backend enforces 403 for non-Admin)
+export const getAdminUsersApi = () => API.get('/admin/users');
+export const deleteAdminUserApi = (id) => API.delete(`/admin/users/${id}`);
+
+export const getAdminProjectsApi = () => API.get('/admin/projects');
+export const deleteAdminProjectApi = (id) => API.delete(`/admin/projects/${id}`);
+
+export const getAdminTasksApi = () => API.get('/admin/tasks');
+export const deleteAdminTaskApi = (id) => API.delete(`/admin/tasks/${id}`);
+
 export default API;

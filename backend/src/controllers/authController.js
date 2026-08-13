@@ -20,11 +20,16 @@ const registerUser = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'User already exists' });
     }
 
+    // Security: Admin is a protected role — it cannot be self-assigned via public registration.
+    // Only 'Employee' and 'Manager' are valid roles for public sign-up.
+    const ALLOWED_PUBLIC_ROLES = ['Employee', 'Manager'];
+    const safeRole = ALLOWED_PUBLIC_ROLES.includes(role) ? role : 'Employee';
+
     const user = await User.create({
       name,
       email,
       password,
-      role: role || 'Employee',
+      role: safeRole,
       department: department || 'Engineering',
     });
 

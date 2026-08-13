@@ -216,7 +216,7 @@ const getProjectMembers = async (req, res, next) => {
     }
 
     // Authorization: only project creator, members, or Admin can see the member list
-    if (!req.user.isAdmin) {
+    if (req.user.role !== 'Admin') {
       const isCreator = project.createdBy._id.toString() === req.user._id.toString();
       const isMember = project.members.some(m => m._id.toString() === req.user._id.toString());
       if (!isCreator && !isMember) {
