@@ -29,9 +29,9 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
           </div>
           <div>
             <h1 className="font-extrabold text-base tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-              CloudTask Pro
+              ProjectFlow
             </h1>
-            <p className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Enterprise Cloud OS</p>
+            <p className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Keep Track of Projects</p>
           </div>
         </div>
 
@@ -45,11 +45,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs transition-all ${
-                  isActive
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs transition-all ${isActive
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25 font-semibold'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
+                  }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                 <span>{item.label}</span>
