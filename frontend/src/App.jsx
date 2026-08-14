@@ -19,6 +19,7 @@ const App = () => {
   const [authView, setAuthView] = useState('login'); // 'login' | 'register'
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedProject, setSelectedProject] = useState(null);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Global Quick Modals
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -42,7 +43,7 @@ const App = () => {
       <div className="min-h-screen flex items-center justify-center bg-[#0f172a] text-white">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-xs font-mono text-indigo-400">Loading CloudTask Pro OS...</span>
+          <span className="text-xs font-mono text-indigo-400">Loading ProjectFlow...</span>
         </div>
       </div>
     );
@@ -57,6 +58,12 @@ const App = () => {
     );
   }
 
+  const handleNavigate = (tab) => {
+    setActiveTab(tab);
+    setSelectedProject(null);
+    setIsMobileSidebarOpen(false);
+  };
+
   const handleSelectProject = (project) => {
     setSelectedProject(project);
     setActiveTab('projectDetail');
@@ -65,8 +72,12 @@ const App = () => {
   const handleGlobalCreateTask = async (taskData) => {
     try {
       await createTaskApi(taskData);
+      // Refresh project list to update stats
+      getProjectsApi()
+        .then((res) => res.data.success && setProjectsList(res.data.data))
+        .catch(() => {});
     } catch (e) {
-      // Local state handled by component
+      // Local error handled in modal
     }
     setIsTaskModalOpen(false);
   };
@@ -74,33 +85,40 @@ const App = () => {
   const handleGlobalCreateProject = async (projectData) => {
     try {
       await createProjectApi(projectData);
+      getProjectsApi()
+        .then((res) => res.data.success && setProjectsList(res.data.data))
+        .catch(() => {});
     } catch (e) {
-      // Local state handled by component
+      // Local error handled in modal
     }
     setIsProjectModalOpen(false);
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-[#0f172a] overflow-hidden">
-      {/* Sidebar */}
+    <div className="flex h-screen bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 overflow-hidden font-sans transition-colors">
+      {/* Sidebar (Desktop + Mobile Drawer) */}
       <Sidebar
         activeTab={activeTab}
-        setActiveTab={(tab) => {
-          setActiveTab(tab);
-          setSelectedProject(null);
-        }}
+        setActiveTab={handleNavigate}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
-      {/* Main Container */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Navbar */}
-        <Navbar onOpenCreateTask={() => setIsTaskModalOpen(true)} />
+        <Navbar
+          activeTab={activeTab}
+          onNavigate={handleNavigate}
+          onOpenCreateTask={() => setIsTaskModalOpen(true)}
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen(true)}
+        />
 
-        {/* Dynamic Page View Area */}
+        {/* Dynamic Page Views */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
           {activeTab === 'dashboard' && (
             <Dashboard
-              onNavigate={(tab) => setActiveTab(tab)}
+              onNavigate={handleNavigate}
               onOpenCreateTask={() => setIsTaskModalOpen(true)}
               onOpenCreateProject={() => setIsProjectModalOpen(true)}
             />
@@ -113,7 +131,7 @@ const App = () => {
           {activeTab === 'projectDetail' && selectedProject && (
             <ProjectDetail
               project={selectedProject}
-              onBack={() => setActiveTab('projects')}
+              onBack={() => handleNavigate('projects')}
             />
           )}
 
@@ -121,7 +139,7 @@ const App = () => {
 
           {activeTab === 'profile' && <Profile />}
 
-          {/* Admin Management — rendered only for Admin role (server also enforces this) */}
+          {/* Admin Management — rendered only for Admin role */}
           {activeTab === 'admin' && user?.role === 'Admin' && <AdminManagement />}
         </main>
       </div>

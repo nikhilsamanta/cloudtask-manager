@@ -1,7 +1,7 @@
 {
-  "name": "cloudtask-pro-backend",
+  "name": "projectflow-backend",
   "version": "1.0.0",
-  "description": "CloudTask Pro REST API - Production Ready Task Management Backend",
+  "description": "ProjectFlow REST API - Keep Track of Your Projects",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

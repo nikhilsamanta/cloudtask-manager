@@ -30,7 +30,7 @@ const Register = ({ onSwitchToLogin }) => {
             Create Account
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
-            Join CloudTask Pro Workspace
+            Join ProjectFlow Workspace
           </p>
         </div>
 
@@ -69,7 +69,7 @@ const Register = ({ onSwitchToLogin }) => {
               <input
                 type="email"
                 required
-                placeholder="sarah@cloudtask.com"
+                placeholder="sarah@projectflow.io"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white font-medium"

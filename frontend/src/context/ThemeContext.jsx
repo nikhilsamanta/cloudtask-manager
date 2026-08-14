@@ -4,7 +4,7 @@ const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('cloudtask_theme') || 'dark';
+    return localStorage.getItem('projectflow_theme') || 'dark';
   });
 
   useEffect(() => {
@@ -14,7 +14,7 @@ export const ThemeProvider = ({ children }) => {
     } else {
       root.classList.remove('dark');
     }
-    localStorage.setItem('cloudtask_theme', theme);
+    localStorage.setItem('projectflow_theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {

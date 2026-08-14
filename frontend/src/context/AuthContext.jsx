@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   // Check if token exists on load
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('cloudtask_token');
+      const token = localStorage.getItem('projectflow_token');
       if (token) {
         try {
           const res = await getMeApi();
@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (err) {
           console.warn('[AuthContext]: Stale or invalid token, logging out.');
-          localStorage.removeItem('cloudtask_token');
+          localStorage.removeItem('projectflow_token');
         }
       }
       setLoading(false);
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
       const res = await loginApi({ email, password });
       if (res.data.success) {
         const userData = res.data.data;
-        localStorage.setItem('cloudtask_token', userData.token);
+        localStorage.setItem('projectflow_token', userData.token);
         setUser(userData);
         return true;
       }
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
       const res = await registerApi(userData);
       if (res.data.success) {
         const newUser = res.data.data;
-        localStorage.setItem('cloudtask_token', newUser.token);
+        localStorage.setItem('projectflow_token', newUser.token);
         setUser(newUser);
         return true;
       }
@@ -63,8 +63,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('cloudtask_token');
-    localStorage.removeItem('cloudtask_demo_user');
+    localStorage.removeItem('projectflow_token');
+    localStorage.removeItem('projectflow_demo_user');
     setUser(null);
   };
 

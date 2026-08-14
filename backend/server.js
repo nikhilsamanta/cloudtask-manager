@@ -39,7 +39,7 @@ app.get('/health', (req, res) => {
     status: 'UP',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    service: 'CloudTask Pro REST API',
+    service: 'ProjectFlow REST API',
   });
 });
 
@@ -50,6 +50,7 @@ app.use('/api/tasks', require('./src/routes/taskRoutes'));
 app.use('/api/attachments', require('./src/routes/attachmentRoutes'));
 app.use('/api/dashboard', require('./src/routes/dashboardRoutes'));
 app.use('/api/admin', require('./src/routes/adminRoutes'));
+app.use('/api/notifications', require('./src/routes/notificationRoutes'));
 
 // 404 Route Handler
 app.use('*', (req, res) => {
@@ -62,7 +63,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
-  console.log(`[CloudTask Pro API Server]: Running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  console.log(`[ProjectFlow API Server]: Running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
 
 // Handle unhandled promise rejections

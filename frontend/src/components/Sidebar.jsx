@@ -8,10 +8,11 @@ import {
   Server,
   Terminal,
   ShieldCheck,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const Sidebar = ({ activeTab, setActiveTab }) => {
+const Sidebar = ({ activeTab, setActiveTab, isMobileOpen, onCloseMobile }) => {
   const { user } = useAuth();
 
   const navItems = [
@@ -21,23 +22,41 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { id: 'profile', label: 'Profile', icon: User },
   ];
 
-  return (
-    <aside className="w-64 bg-white dark:bg-[#0f172a] border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between hidden md:flex shrink-0 transition-colors">
+  const handleNavClick = (tabId) => {
+    setActiveTab(tabId);
+    if (onCloseMobile) onCloseMobile();
+  };
+
+  const renderNavContent = () => (
+    <div className="flex flex-col justify-between h-full">
       <div>
-        {/* Brand Logo */}
-        <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-200 dark:border-slate-800">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-            <Cloud className="w-5 h-5" />
+        {/* Brand Header */}
+        <div className="h-16 px-6 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+              <Cloud className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="font-extrabold text-base tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                ProjectFlow
+              </h1>
+              <p className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Keep Track of Your Projects</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-extrabold text-base tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-              ProjectFlow
-            </h1>
-            <p className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Keep Track of Projects</p>
-          </div>
+
+          {/* Close button for mobile drawer */}
+          {onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="md:hidden p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+              aria-label="Close navigation"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
-        {/* Main Navigation */}
+        {/* Navigation items */}
         <nav className="p-4 space-y-1">
           <p className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Main Menu</p>
           {navItems.map((item) => {
@@ -46,11 +65,13 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs transition-all ${isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25 font-semibold'
+                id={`sidebar-nav-${item.id}`}
+                onClick={() => handleNavClick(item.id)}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all ${
+                  isActive
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-200'
-                  }`}
+                }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                 <span>{item.label}</span>
@@ -58,18 +79,18 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
             );
           })}
 
-          {/* Admin-only navigation section */}
+          {/* Admin-only section (strictly hidden for Employee and Manager) */}
           {user?.role === 'Admin' && (
             <>
-              <p className="px-3 text-[10px] font-bold text-purple-400/70 uppercase tracking-wider mb-2 mt-4">
+              <p className="px-3 text-[10px] font-bold text-purple-400 uppercase tracking-wider mb-2 mt-5">
                 Admin Zone
               </p>
               <button
                 id="sidebar-admin-management"
-                onClick={() => setActiveTab('admin')}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs transition-all ${
+                onClick={() => handleNavClick('admin')}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all ${
                   activeTab === 'admin'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-500/25 font-semibold'
+                    ? 'bg-purple-600 text-white shadow-md shadow-purple-500/25'
                     : 'text-purple-400 hover:bg-purple-500/10 hover:text-purple-300 border border-purple-500/20 hover:border-purple-500/40'
                 }`}
               >
@@ -81,7 +102,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         </nav>
       </div>
 
-      {/* DevOps Ready Widget */}
+      {/* DevOps Architecture Badge */}
       <div className="p-4 m-3 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800/90 dark:to-slate-900 border border-slate-700/60 text-white">
         <div className="flex items-center gap-2 mb-1.5 text-indigo-400 text-xs font-semibold">
           <Server className="w-4 h-4" />
@@ -95,7 +116,29 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
           <span>STATUS: 200 OK (MDB)</span>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Persistent Sidebar */}
+      <aside className="w-64 bg-white dark:bg-[#0f172a] border-r border-slate-200 dark:border-slate-800 flex-col justify-between hidden md:flex shrink-0 transition-colors">
+        {renderNavContent()}
+      </aside>
+
+      {/* Mobile Slide-over Drawer */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex animate-in fade-in duration-200">
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={onCloseMobile}
+          />
+          <aside className="relative w-64 bg-white dark:bg-[#0f172a] border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between h-full shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+            {renderNavContent()}
+          </aside>
+        </div>
+      )}
+    </>
   );
 };
 

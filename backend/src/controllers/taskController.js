@@ -3,6 +3,7 @@ const Project = require('../models/Project');
 const ActivityLog = require('../models/ActivityLog');
 const Comment = require('../models/Comment');
 const Attachment = require('../models/Attachment');
+const Notification = require('../models/Notification');
 
 // @desc    Get all tasks (with optional project filter & search)
 // @route   GET /api/tasks
@@ -174,6 +175,19 @@ const createTask = async (req, res, next) => {
       targetId: task._id,
     });
 
+    // Create notification for assignee if assigned to someone else
+    if (task.assignedTo && task.assignedTo.toString() !== req.user._id.toString()) {
+      await Notification.create({
+        recipient: task.assignedTo,
+        sender: req.user._id,
+        type: 'task_assigned',
+        title: 'New Task Assigned',
+        message: `${req.user.name} assigned you the task "${task.title}" in project "${projectObj.name}".`,
+        task: task._id,
+        project: projectObj._id,
+      });
+    }
+
     const populatedTask = await Task.findById(task._id)
       .populate('project', 'name category')
       .populate('assignedTo', 'name email avatar role')
@@ -195,6 +209,8 @@ const updateTask = async (req, res, next) => {
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
+
+    const previousAssignee = task.assignedTo ? task.assignedTo.toString() : null;
 
     // Authorization check for non-Admin users
     if (req.user.role !== 'Admin') {
@@ -242,6 +258,31 @@ const updateTask = async (req, res, next) => {
       targetType: 'Task',
       targetId: task._id,
     });
+
+    // Notify new assignee if reassigned
+    const newAssigneeId = task.assignedTo?._id?.toString() || task.assignedTo?.toString();
+    if (newAssigneeId && newAssigneeId !== previousAssignee && newAssigneeId !== req.user._id.toString()) {
+      await Notification.create({
+        recipient: newAssigneeId,
+        sender: req.user._id,
+        type: 'task_assigned',
+        title: 'Task Assigned to You',
+        message: `${req.user.name} assigned you the task "${task.title}".`,
+        task: task._id,
+        project: task.project?._id || task.project,
+      });
+    } else if (newAssigneeId && newAssigneeId !== req.user._id.toString()) {
+      // Notify current assignee about the update
+      await Notification.create({
+        recipient: newAssigneeId,
+        sender: req.user._id,
+        type: 'task_updated',
+        title: 'Task Updated',
+        message: `${req.user.name} updated the task "${task.title}".`,
+        task: task._id,
+        project: task.project?._id || task.project,
+      });
+    }
 
     res.json({ success: true, data: task });
   } catch (error) {
@@ -293,6 +334,37 @@ const updateTaskStatus = async (req, res, next) => {
       targetType: 'Task',
       targetId: task._id,
     });
+
+    // Notify assignee or creator if status was changed by someone else
+    const assigneeId = task.assignedTo?.toString();
+    const creatorId = task.createdBy?.toString();
+    const currentUserId = req.user._id.toString();
+
+    // If modifier is not the assignee, notify the assignee
+    if (assigneeId && assigneeId !== currentUserId) {
+      await Notification.create({
+        recipient: assigneeId,
+        sender: req.user._id,
+        type: 'task_status_changed',
+        title: 'Task Status Changed',
+        message: `${req.user.name} moved task "${task.title}" to ${status}.`,
+        task: task._id,
+        project: task.project,
+      });
+    }
+
+    // If modifier is not the creator, notify the creator
+    if (creatorId && creatorId !== currentUserId && creatorId !== assigneeId) {
+      await Notification.create({
+        recipient: creatorId,
+        sender: req.user._id,
+        type: 'task_status_changed',
+        title: 'Task Status Changed',
+        message: `${req.user.name} moved task "${task.title}" to ${status}.`,
+        task: task._id,
+        project: task.project,
+      });
+    }
 
     res.json({ success: true, data: populatedTask });
   } catch (error) {

@@ -9,7 +9,7 @@ const API = axios.create({
 
 // Interceptor to add Authorization Bearer header
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('cloudtask_token');
+  const token = localStorage.getItem('projectflow_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -66,5 +66,12 @@ export const deleteAdminProjectApi = (id) => API.delete(`/admin/projects/${id}`)
 
 export const getAdminTasksApi = () => API.get('/admin/tasks');
 export const deleteAdminTaskApi = (id) => API.delete(`/admin/tasks/${id}`);
+
+// Notification API Methods
+export const getNotificationsApi = (params) => API.get('/notifications', { params });
+export const markNotificationReadApi = (id) => API.patch(`/notifications/${id}/read`);
+export const markAllNotificationsReadApi = () => API.patch('/notifications/read-all');
+export const deleteNotificationApi = (id) => API.delete(`/notifications/${id}`);
+export const clearAllNotificationsApi = () => API.delete('/notifications');
 
 export default API;

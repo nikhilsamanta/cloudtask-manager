@@ -1,6 +1,7 @@
 const Project = require('../models/Project');
 const Task = require('../models/Task');
 const ActivityLog = require('../models/ActivityLog');
+const Notification = require('../models/Notification');
 
 // @desc    Get all projects
 // @route   GET /api/projects
@@ -113,6 +114,20 @@ const createProject = async (req, res, next) => {
       targetId: project._id,
     });
 
+    // Notify assigned project members
+    const newMembers = projectMembers.filter(m => m.toString() !== req.user._id.toString());
+    if (newMembers.length > 0) {
+      const notifications = newMembers.map(memberId => ({
+        recipient: memberId,
+        sender: req.user._id,
+        type: 'project_assigned',
+        title: 'Added to Project',
+        message: `${req.user.name} added you to project "${project.name}".`,
+        project: project._id,
+      }));
+      await Notification.insertMany(notifications);
+    }
+
     const populatedProject = await Project.findById(project._id)
       .populate('createdBy', 'name email avatar')
       .populate('members', 'name email avatar role');
@@ -140,6 +155,26 @@ const updateProject = async (req, res, next) => {
       const isMember = project.members.some(m => m.toString() === req.user._id.toString());
       if (!isCreator && !isMember) {
         return res.status(403).json({ success: false, message: 'Not authorized to update this project' });
+      }
+    }
+
+    // Check newly added members for notification
+    if (req.body.members && Array.isArray(req.body.members)) {
+      const oldMemberIds = (project.members || []).map(m => (m._id ? m._id.toString() : m.toString()));
+      const addedMembers = req.body.members.filter(m => {
+        const mStr = m.toString();
+        return !oldMemberIds.includes(mStr) && mStr !== req.user._id.toString();
+      });
+      if (addedMembers.length > 0) {
+        const notifications = addedMembers.map(memberId => ({
+          recipient: memberId,
+          sender: req.user._id,
+          type: 'project_assigned',
+          title: 'Added to Project',
+          message: `${req.user.name} added you to project "${project.name}".`,
+          project: project._id,
+        }));
+        await Notification.insertMany(notifications);
       }
     }
 

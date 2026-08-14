@@ -32,10 +32,10 @@ const Login = ({ onSwitchToRegister }) => {
             <Cloud className="w-7 h-7" />
           </div>
           <h1 className="text-2xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent tracking-tight">
-            CloudTask Pro
+            ProjectFlow
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
-            Production-Ready Task & Project Management OS
+            Keep Track of Your Projects
           </p>
         </div>
 
@@ -57,7 +57,7 @@ const Login = ({ onSwitchToRegister }) => {
               <input
                 type="email"
                 required
-                placeholder="admin@cloudtask.com"
+                placeholder="admin@projectflow.io"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white font-medium"

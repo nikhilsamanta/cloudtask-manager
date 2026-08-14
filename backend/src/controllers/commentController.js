@@ -2,6 +2,7 @@ const Comment = require('../models/Comment');
 const Task = require('../models/Task');
 const Project = require('../models/Project');
 const ActivityLog = require('../models/ActivityLog');
+const Notification = require('../models/Notification');
 
 // Helper to verify task access
 const verifyTaskAccess = async (taskId, user) => {
@@ -73,6 +74,31 @@ const addComment = async (req, res, next) => {
       targetType: 'Comment',
       targetId: comment._id,
     });
+
+    // Notify task assignee and task creator (if different from comment author)
+    const recipientsToNotify = new Set();
+    const currentUserId = req.user._id.toString();
+
+    if (access.task.assignedTo && access.task.assignedTo.toString() !== currentUserId) {
+      recipientsToNotify.add(access.task.assignedTo.toString());
+    }
+    if (access.task.createdBy && access.task.createdBy.toString() !== currentUserId) {
+      recipientsToNotify.add(access.task.createdBy.toString());
+    }
+
+    if (recipientsToNotify.size > 0) {
+      const snippet = content.length > 50 ? content.substring(0, 47) + '...' : content;
+      const notifications = [...recipientsToNotify].map((recipientId) => ({
+        recipient: recipientId,
+        sender: req.user._id,
+        type: 'comment_added',
+        title: 'New Comment on Task',
+        message: `${req.user.name} commented on "${access.task.title}": "${snippet}"`,
+        task: access.task._id,
+        project: access.task.project,
+      }));
+      await Notification.insertMany(notifications);
+    }
 
     res.status(201).json({ success: true, data: populatedComment });
   } catch (error) {
